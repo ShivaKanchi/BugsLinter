@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: bugslinter-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bugslinter
+      POSTGRES_USER: bugslinter_owner
+      POSTGRES_PASSWORD: bugslinter_owner_password
+    ports:
+      - "5438:5432"
+    volumes:
+      - bugslinter-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U bugslinter_owner -d bugslinter",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  bugslinter-postgres-data:
