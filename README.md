@@ -50,6 +50,10 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Study Guide
+
+For a repo-first walkthrough of how the current app, database, tenant model, and next implementation path fit together, start with [docs/study/README.md](docs/study/README.md).
+
 ## Windows Bun Fallback
 
 Use these commands if PowerShell blocks the Bun shim:
