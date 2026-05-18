@@ -161,17 +161,17 @@ export function ProductAppShell({
 }) {
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="mx-auto grid max-w-[1600px] gap-4 px-4 py-4 lg:grid-cols-[250px_minmax(0,1fr)_330px] lg:px-6">
+      <div className="suite-shell mx-auto grid max-w-[1600px] gap-4 px-4 py-4 lg:grid-cols-[250px_minmax(0,1fr)_330px] lg:px-6">
         <aside className="suite-sidebar panel rounded-[2rem] p-5 lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)] overflow-auto">
           <div className="space-y-3">
-            <div className="inline-flex rounded-full border border-white/10 bg-white/[0.05] px-3 py-2 text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">
+            <div className="meta-mono inline-flex rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">
               Northstar Labs
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">
+              <p className="meta-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">
                 Workspace context
               </p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-[-0.05em]">
+              <h1 className="display-title mt-2 text-2xl font-semibold tracking-[-0.05em]">
                 Bugslinter future suite
               </h1>
               <p className="mt-2 text-sm leading-7 text-[var(--foreground-subtle)]">
@@ -188,14 +188,14 @@ export function ProductAppShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center justify-between rounded-[1.25rem] px-4 py-3 text-sm ${
+                  className={`suite-nav-item flex items-center justify-between rounded-[1.25rem] px-4 py-3 text-sm ${
                     selected
-                      ? "border border-[color:var(--accent)] bg-[var(--accent-soft)] text-[var(--foreground)]"
-                      : "border border-white/10 bg-white/[0.04] text-[var(--foreground-subtle)] hover:bg-white/[0.08]"
+                      ? "suite-nav-item-active text-[var(--foreground)]"
+                      : "text-[var(--foreground-subtle)]"
                   }`}
                 >
                   <span>{item.label}</span>
-                  <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em]">
+                  <span className="meta-mono rounded-full border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em]">
                     {item.short}
                   </span>
                 </Link>
@@ -203,8 +203,8 @@ export function ProductAppShell({
             })}
           </nav>
 
-          <div className="mt-8 space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-            <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">
+          <div className="mt-8 space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+            <p className="meta-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">
               Shared delivery rules
             </p>
             <ul className="space-y-3 text-sm leading-7 text-[var(--foreground-subtle)]">
@@ -216,11 +216,11 @@ export function ProductAppShell({
         </aside>
 
         <section className="space-y-4">
-          <div className="panel rounded-[2rem] px-6 py-6 sm:px-8">
+          <div className="panel-strong rounded-[2rem] px-6 py-6 sm:px-8">
             <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">
                 <p className="section-kicker">{eyebrow}</p>
-                <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+                <h2 className="display-title mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
                   {title}
                 </h2>
                 <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--foreground-subtle)]">
@@ -290,8 +290,8 @@ export function SectionTitle({
 }) {
   return (
     <div>
-      <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">{eyebrow}</p>
-      <h3 className="mt-3 text-xl font-semibold tracking-[-0.04em]">{title}</h3>
+      <p className="meta-mono text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">{eyebrow}</p>
+      <h3 className="display-title mt-3 text-xl font-semibold tracking-[-0.04em]">{title}</h3>
       <p className="mt-3 text-sm leading-7 text-[var(--foreground-subtle)]">{body}</p>
     </div>
   );
@@ -329,11 +329,11 @@ export function SuiteCard({
   return (
     <section className="panel rounded-[1.8rem] px-5 py-5">
       {eyebrow ? (
-        <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">{eyebrow}</p>
+        <p className="meta-mono text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">{eyebrow}</p>
       ) : null}
-      <h3 className="mt-3 text-xl font-semibold tracking-[-0.04em]">{title}</h3>
+      <h3 className="display-title mt-3 text-xl font-semibold tracking-[-0.04em]">{title}</h3>
       {body ? <p className="mt-3 text-sm leading-7 text-[var(--foreground-subtle)]">{body}</p> : null}
-      {children ? <div className="mt-5">{children}</div> : null}
+      {children ? <div className="soft-rule mt-5 pt-5">{children}</div> : null}
     </section>
   );
 }
@@ -346,9 +346,9 @@ export function MetricRow({
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {metrics.map((metric) => (
-        <div key={metric.label} className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4">
-          <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">{metric.label}</p>
-          <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">{metric.value}</p>
+        <div key={metric.label} className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-4 py-4">
+          <p className="meta-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">{metric.label}</p>
+          <p className="display-title mt-3 text-2xl font-semibold tracking-[-0.04em]">{metric.value}</p>
           <p className="mt-2 text-sm leading-6 text-[var(--foreground-subtle)]">{metric.note}</p>
         </div>
       ))}
@@ -364,7 +364,7 @@ export function RailCard({
   lines: string[];
 }) {
   return (
-    <div className="rounded-[1.45rem] border border-white/10 bg-white/[0.04] px-4 py-4">
+    <div className="rounded-[1.45rem] border border-white/10 bg-white/[0.03] px-4 py-4">
       <p className="text-sm font-medium">{title}</p>
       <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--foreground-subtle)]">
         {lines.map((line) => (
@@ -387,12 +387,12 @@ export function IssueList({ selectedIssueId }: { selectedIssueId?: string }) {
             className={`block rounded-[1.4rem] border px-4 py-4 ${
               selected
                 ? "border-[color:var(--accent)] bg-[var(--accent-soft)]"
-                : "border-white/10 bg-white/[0.04]"
+                : "border-white/10 bg-white/[0.03]"
             }`}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">{issue.key}</p>
+                <p className="meta-mono text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">{issue.key}</p>
                 <h4 className="mt-2 text-base font-medium">{issue.title}</h4>
                 <p className="mt-2 text-sm leading-6 text-[var(--foreground-subtle)]">{issue.summary}</p>
               </div>
@@ -424,10 +424,10 @@ export function StatusPill({
       ? "border-amber-300/20 bg-amber-300/10 text-amber-100"
       : tone === "success"
         ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
-        : "border-white/10 bg-white/[0.04] text-[var(--foreground-subtle)]";
+        : "border-white/10 bg-white/[0.03] text-[var(--foreground-subtle)]";
 
   return (
-    <span className={`rounded-full border px-3 py-1 ${toneClass}`}>{value}</span>
+    <span className={`meta-mono rounded-full border px-3 py-1 ${toneClass}`}>{value}</span>
   );
 }
 
@@ -439,20 +439,20 @@ export function BoardLane({
   issues: Issue[];
 }) {
   return (
-    <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.04] p-4">
+    <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">Workflow</p>
-          <h4 className="mt-2 text-lg font-semibold">{title}</h4>
+          <p className="meta-mono text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">Workflow</p>
+          <h4 className="display-title mt-2 text-lg font-semibold">{title}</h4>
         </div>
-        <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-[var(--foreground-subtle)]">
+        <span className="meta-mono rounded-full border border-white/10 px-3 py-1 text-xs text-[var(--foreground-subtle)]">
           {issues.length}
         </span>
       </div>
       <div className="mt-4 space-y-3">
         {issues.map((issue) => (
           <div key={issue.id} className="rounded-[1.25rem] border border-white/10 bg-[var(--surface-strong)] p-4">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">{issue.key}</p>
+            <p className="meta-mono text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">{issue.key}</p>
             <p className="mt-2 font-medium">{issue.title}</p>
             <p className="mt-2 text-sm leading-6 text-[var(--foreground-subtle)]">{issue.assignee}</p>
           </div>
@@ -506,7 +506,7 @@ export function IntegrationMatrix() {
   return (
     <div className="space-y-3">
       {integrations.map((integration) => (
-        <div key={integration.name} className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] px-4 py-4">
+        <div key={integration.name} className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-4">
           <p className="font-medium">{integration.name}</p>
           <p className="mt-2 text-sm leading-6 text-[var(--foreground-subtle)]">{integration.detail}</p>
         </div>
@@ -514,4 +514,3 @@ export function IntegrationMatrix() {
     </div>
   );
 }
-
