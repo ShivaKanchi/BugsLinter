@@ -15,7 +15,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "Bugslinter",
-  description: "Tenant-safe Jira-like issue workflow for projects, sprints, and activity history.",
+  description: "AI-assisted workflow management for software delivery, built for teams that want simpler delivery control without Jira overhead.",
 };
 
 export default function RootLayout({

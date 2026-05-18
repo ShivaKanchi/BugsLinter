@@ -111,6 +111,15 @@ const sprintStateSchema = z.object({
   redirectTo: redirectSchema,
 });
 
+const requestDemoSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  email: z.email(),
+  company: z.string().trim().min(2).max(120),
+  teamSize: z.string().trim().min(1).max(40),
+  stack: z.string().trim().min(2).max(200),
+  pain: z.string().trim().min(10).max(2000),
+});
+
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
@@ -197,7 +206,7 @@ async function createProjectWithWorkflow(
 export async function useSeededWorkspaceAction() {
   await ensureMembership(demoTenantId, demoAdminUserId);
   await setSession({ tenantId: demoTenantId, userId: demoAdminUserId });
-  redirect(`/?project=${encodeURIComponent(demoProjectId)}`);
+  redirect(`/workspace?project=${encodeURIComponent(demoProjectId)}`);
 }
 
 export async function logoutAction() {
@@ -279,7 +288,7 @@ export async function createWorkspaceAction(formData: FormData) {
   });
 
   await setSession({ tenantId, userId });
-  redirect(`/?project=${encodeURIComponent(projectId)}`);
+  redirect(`/workspace?project=${encodeURIComponent(projectId)}`);
 }
 
 export async function inviteMemberAction(formData: FormData) {
@@ -314,7 +323,7 @@ export async function inviteMemberAction(formData: FormData) {
     });
   });
 
-  revalidatePath("/");
+  revalidatePath("/workspace");
 }
 
 export async function createProjectAction(formData: FormData) {
@@ -340,7 +349,7 @@ export async function createProjectAction(formData: FormData) {
     parsed.description,
   );
 
-  redirect(`/?project=${encodeURIComponent(projectId)}`);
+  redirect(`/workspace?project=${encodeURIComponent(projectId)}`);
 }
 
 export async function createSprintAction(formData: FormData) {
@@ -374,7 +383,7 @@ export async function createSprintAction(formData: FormData) {
     });
   });
 
-  redirect(`/?project=${encodeURIComponent(parsed.projectId)}`);
+  redirect(`/workspace?project=${encodeURIComponent(parsed.projectId)}`);
 }
 
 export async function activateSprintAction(formData: FormData) {
@@ -565,7 +574,20 @@ export async function createIssueAction(formData: FormData) {
     return newIssueId;
   });
 
-  redirect(`/?project=${encodeURIComponent(parsed.projectId)}&issue=${encodeURIComponent(issueId)}`);
+  redirect(`/workspace?project=${encodeURIComponent(parsed.projectId)}&issue=${encodeURIComponent(issueId)}`);
+}
+
+export async function requestDemoAction(formData: FormData) {
+  requestDemoSchema.parse({
+    name: readString(formData, "name"),
+    email: readString(formData, "email"),
+    company: readString(formData, "company"),
+    teamSize: readString(formData, "teamSize"),
+    stack: readString(formData, "stack"),
+    pain: readString(formData, "pain"),
+  });
+
+  redirect("/book-demo?submitted=1");
 }
 
 export async function transitionIssueAction(formData: FormData) {

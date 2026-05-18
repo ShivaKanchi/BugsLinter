@@ -1,782 +1,367 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
-import {
-  activateSprintAction,
-  addCommentAction,
-  completeSprintAction,
-  createIssueAction,
-  createProjectAction,
-  createSprintAction,
-  createWorkspaceAction,
-  inviteMemberAction,
-  logoutAction,
-  transitionIssueAction,
-  updateIssueAction,
-  useSeededWorkspaceAction,
-} from "@/app/actions";
-import { demoProjectId } from "@/lib/bugslinter/constants";
-import { getWorkspaceState } from "@/lib/bugslinter/workspace";
-
-export const dynamic = "force-dynamic";
-
-type PageProps = {
-  searchParams: Promise<{
-    project?: string;
-    issue?: string;
-  }>;
+export const metadata: Metadata = {
+  title: "Bugslinter",
+  description: "AI-assisted workflow management for software delivery, built for teams that want simpler delivery control without Jira overhead.",
 };
 
-type ActivityMetadata = Record<string, string | null | number | boolean | undefined>;
+const workflowSteps = [
+  {
+    eyebrow: "1. Intake",
+    title: "Bug intake lands with real issue context",
+    body: "Capture bugs, constraints, and delivery pressure in one flow before context gets lost across threads.",
+  },
+  {
+    eyebrow: "2. Assist",
+    title: "AI assistance adds direction, not chaos",
+    body: "Bugslinter frames issue context for teams and coding agents, while human approval stays in control.",
+  },
+  {
+    eyebrow: "3. Deliver",
+    title: "Release status stays connected to the work",
+    body: "Move from fix to testing, release notes, and live status without rebuilding the same story in five tools.",
+  },
+];
 
-function workspaceHref(projectId?: string | null, issueId?: string | null) {
-  const params = new URLSearchParams();
+const productPillars = [
+  {
+    title: "Coding-agent integrations (MCP compatible)",
+    body: "Connect issue context to coding-agent workflows without turning the product into an agent toy.",
+  },
+  {
+    title: "Slack and channel awareness",
+    body: "Tie delivery updates to communication channels so decisions stop disappearing into side threads.",
+  },
+  {
+    title: "Release notes from Git activity",
+    body: "Turn Git commit intent into cleaner release tracking, GitHub pull request context, and spreadsheet-ready visibility.",
+  },
+];
 
-  if (projectId) {
-    params.set("project", projectId);
-  }
+const comparisonPoints = [
+  "Less operational bloat, more delivery signal",
+  "Private code context with human approval",
+  "AI-assisted delivery without losing team judgment",
+];
 
-  if (issueId) {
-    params.set("issue", issueId);
-  }
-
-  const query = params.toString();
-  return query ? `/?${query}` : "/";
-}
-
-function formatDate(value: Date | string | null | undefined) {
-  if (!value) {
-    return "Unscheduled";
-  }
-
-  const date = value instanceof Date ? value : new Date(value);
-
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-  }).format(date);
-}
-
-function summarizeActivity(type: string, metadata: ActivityMetadata) {
-  switch (type) {
-    case "status_changed":
-      return `moved status from ${metadata.from ?? "unknown"} to ${metadata.to ?? "unknown"}`;
-    case "priority_changed":
-      return `changed priority from ${metadata.from ?? "unknown"} to ${metadata.to ?? "unknown"}`;
-    case "assigned":
-      return "reassigned ownership";
-    case "sprint_changed":
-      return metadata.to ? "moved the issue into a sprint" : "returned the issue to backlog";
-    case "title_changed":
-      return "renamed the issue";
-    case "description_changed":
-      return "updated the issue brief";
-    case "commented":
-      return "added a comment";
-    case "created":
-      return "created the issue";
-    default:
-      return "updated the issue";
-  }
-}
-
-export default async function Home({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const state = await getWorkspaceState(params.project, params.issue);
-
-  if (!state) {
-    return (
-      <main className="min-h-screen px-5 py-6 sm:px-8 lg:px-10">
-        <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-7xl gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <section className="panel flex min-h-[28rem] flex-col justify-between overflow-hidden rounded-[2rem] px-6 py-8 sm:px-10 sm:py-10">
-            <div className="space-y-6">
-              <div className="inline-flex rounded-full border border-[var(--line)] bg-white/70 px-4 py-2 font-mono text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
-                Bugslinter workflow cockpit
-              </div>
-              <div className="max-w-3xl space-y-4">
-                <p className="text-sm uppercase tracking-[0.26em] text-[var(--muted)]">
-                  Create account, create project, plan sprint, execute work
-                </p>
-                <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.05em] text-[var(--foreground)] sm:text-6xl">
-                  A calm Jira-like surface for teams that want structure without sludge.
-                </h1>
-                <p className="max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
-                  Start with a workspace and first project, then move into backlog,
-                  active sprint, board execution, and issue change history without leaving
-                  the same screen.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-10 grid gap-3 sm:grid-cols-3">
-              {[
-                "1. Create workspace and admin account",
-                "2. Seed a project with workflow states",
-                "3. Plan backlog, sprint, and issue changes",
-              ].map((step) => (
-                <div
-                  key={step}
-                  className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 px-4 py-5 text-sm text-[var(--foreground)]"
-                >
-                  {step}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="panel rounded-[2rem] px-6 py-8 sm:px-8">
-            <div className="space-y-2">
-              <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">
-                Workspace onboarding
-              </p>
-              <h2 className="text-2xl font-semibold tracking-[-0.04em]">
-                Create your first account
-              </h2>
-            </div>
-
-            <form action={createWorkspaceAction} className="mt-8 space-y-4">
-              <input className="field" name="name" placeholder="Your name" required />
-              <input className="field" name="email" placeholder="you@company.com" required type="email" />
-              <input className="field" name="organizationName" placeholder="Workspace name" required />
-              <input className="field" name="organizationSlug" placeholder="workspace-slug" required />
-              <input className="field" name="projectName" placeholder="First project" required />
-              <input className="field" name="projectKey" placeholder="PROJ" required />
-              <button className="btn-primary w-full font-medium" type="submit">
-                Create workspace
-              </button>
-            </form>
-
-            <div className="my-6 flex items-center gap-3">
-              <div className="h-px flex-1 bg-[var(--line)]" />
-              <span className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">or</span>
-              <div className="h-px flex-1 bg-[var(--line)]" />
-            </div>
-
-            <form action={useSeededWorkspaceAction}>
-              <button className="btn-secondary w-full font-medium" type="submit">
-                Open seeded demo workspace
-              </button>
-            </form>
-          </section>
-        </div>
-      </main>
-    );
-  }
-
-  const currentHref = workspaceHref(state.selectedProject?.id, state.selectedIssue?.id);
-  const activeSprint = state.sprints.find((sprint) => sprint.status === "active") ?? null;
-  const plannedSprints = state.sprints.filter((sprint) => sprint.status === "planned");
-  const completedSprints = state.sprints.filter((sprint) => sprint.status === "completed");
-  const backlogIssues = state.issues.filter((issue) => !issue.sprintId);
-  const sprintIssues = activeSprint
-    ? state.issues.filter((issue) => issue.sprintId === activeSprint.id)
-    : [];
-  const issuesByStatus = new Map(state.statuses.map((status) => [status.id, sprintIssues.filter((issue) => issue.statusId === status.id)]));
-  const transitionsByFrom = new Map<string, Array<(typeof state.transitions)[number]>>();
-
-  for (const transition of state.transitions) {
-    transitionsByFrom.set(transition.fromStatusId, [
-      ...(transitionsByFrom.get(transition.fromStatusId) ?? []),
-      transition,
-    ]);
-  }
-
-  const memberOptions = state.members.map((member) => ({
-    ...member,
-    label: member.name || member.email,
-  }));
-
+export default function LandingPage() {
   return (
-    <main className="min-h-screen px-4 py-4 sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-[1560px] gap-4 lg:grid-cols-[220px_minmax(0,1fr)_380px]">
-        <aside className="panel rounded-[2rem] p-5 lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)]">
-          <div className="space-y-2">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
-              {state.organization?.slug}
-            </p>
-            <h1 className="text-2xl font-semibold tracking-[-0.05em]">
-              {state.organization?.name}
-            </h1>
-            <p className="text-sm text-[var(--muted)]">
-              Signed in as {state.currentUser?.name || state.currentUser?.email}
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <div className="mx-auto max-w-[1400px] px-5 py-6 sm:px-8 lg:px-10">
+        <header className="sticky top-4 z-20 rounded-full border border-white/10 bg-[rgba(7,10,20,0.82)] px-5 py-3 shadow-[0_24px_70px_rgba(3,6,18,0.32)] backdrop-blur">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center justify-between gap-4">
+              <Link className="text-lg font-semibold tracking-[-0.04em]" href="/">
+                Bugslinter
+              </Link>
+              <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-[var(--muted)] sm:flex">
+                Simplicity with AI-assisted project delivery
+              </div>
+            </div>
+
+            <nav className="flex flex-wrap items-center gap-3 text-sm text-[var(--foreground-subtle)]">
+              <a className="hover:text-[var(--foreground)]" href="#workflow">
+                Workflow
+              </a>
+              <a className="hover:text-[var(--foreground)]" href="#integrations">
+                Integrations
+              </a>
+              <a className="hover:text-[var(--foreground)]" href="#contrast">
+                Why it lands
+              </a>
+              <Link className="hover:text-[var(--foreground)]" href="/workspace">
+                Login
+              </Link>
+              <Link className="btn-secondary text-sm font-medium" href="#workflow">
+                Learn more
+              </Link>
+              <Link className="btn-primary text-sm font-medium" href="/book-demo">
+                Book a demo
+              </Link>
+            </nav>
+          </div>
+        </header>
+
+        <section className="relative overflow-hidden px-1 pb-10 pt-12 sm:pt-16">
+          <div className="landing-glow landing-glow-left" />
+          <div className="landing-glow landing-glow-right" />
+
+          <div className="grid gap-10 lg:grid-cols-[0.86fr_1.14fr] lg:items-end">
+            <div className="relative z-10 max-w-2xl">
+              <p className="section-kicker">AI-assisted workflow management for software delivery</p>
+              <h1 className="mt-5 text-5xl font-semibold leading-[0.95] tracking-[-0.06em] text-[var(--foreground)] sm:text-6xl xl:text-7xl">
+                Simplicity for teams that ship bugs to resolution, without Jira overhead.
+              </h1>
+              <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--foreground-subtle)]">
+                Bugslinter gives dev leads and delivery teams a sharper loop between issue context,
+                team execution, coding-agent assistance, and release visibility.
+              </p>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link className="btn-primary text-sm font-medium" href="/book-demo">
+                  Book a demo
+                </Link>
+                <a className="btn-secondary text-sm font-medium" href="#workflow">
+                  Learn more
+                </a>
+              </div>
+
+              <div className="mt-10 grid gap-3 sm:grid-cols-3">
+                <HeroSignal
+                  label="Private code context"
+                  body="Issue details stay close to the engineering reality."
+                />
+                <HeroSignal
+                  label="Human approval"
+                  body="AI suggestions support delivery, they do not bypass judgment."
+                />
+                <HeroSignal
+                  label="Channel aware"
+                  body="Slack-style team communication stays in the delivery loop."
+                />
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="hero-frame">
+                <div className="hero-header">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.26em] text-[var(--muted)]">Future-facing workflow view</p>
+                    <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
+                      AI issue context stays central, the team still decides.
+                    </h2>
+                  </div>
+                  <div className="hero-header-pills">
+                    <span>Human approved</span>
+                    <span>Release linked</span>
+                  </div>
+                </div>
+
+                <div className="hero-grid">
+                  <div className="hero-stack">
+                    <WorkflowNode
+                      title="Incoming bug"
+                      body="Support and channel updates land with issue summary, owner, and urgency."
+                      tone="accent"
+                    />
+                    <WorkflowNode
+                      title="Project knowledge base"
+                      body="Delivery history, issue context, and prior decisions stay readable to humans and coding agents."
+                    />
+                    <WorkflowNode
+                      title="Team notification"
+                      body="The right team sees the bug context directly in flow, not as disconnected chatter."
+                    />
+                  </div>
+
+                  <div className="hero-bridge">
+                    <div className="hero-ai-core">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-200/80">AI workflow core</p>
+                      <h3 className="mt-3 text-xl font-semibold tracking-[-0.04em]">
+                        Context before code generation
+                      </h3>
+                      <p className="mt-3 text-sm leading-7 text-[var(--foreground-subtle)]">
+                        Bugslinter prepares the issue description, links the relevant workflow state,
+                        and hands a structured brief into connected coding-agent flows.
+                      </p>
+                      <div className="mt-5 grid gap-3">
+                        <MiniPanel
+                          title="Coding-agent integrations (MCP compatible)"
+                          value="Fix bugs with structured issue context"
+                        />
+                        <MiniPanel
+                          title="Git and PR summary layer"
+                          value="Release notes summarized from Git commit intent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="hero-stack">
+                    <WorkflowNode
+                      title="Fix and testing flow"
+                      body="Team works the bug with direct context, moves it to testing, then to live status."
+                    />
+                    <WorkflowNode
+                      title="Release note tracking"
+                      body="GitHub pull request activity and Google Sheets visibility stay aligned to the same issue flow."
+                    />
+                    <WorkflowNode
+                      title="Live delivery state"
+                      body="The shipping story is readable without the operational sludge of a bloated tracker."
+                      tone="muted"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="workflow" className="grid gap-6 py-10 lg:grid-cols-[0.78fr_1.22fr]">
+          <div className="panel rounded-[2rem] px-6 py-7 sm:px-8">
+            <p className="section-kicker">Why it lands</p>
+            <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+              Better AI-assisted delivery, not more process theater.
+            </h2>
+            <p className="mt-5 max-w-xl text-base leading-8 text-[var(--foreground-subtle)]">
+              Bugslinter is built for teams that already know the pain: bug context scattered
+              across trackers, chat, pull requests, and release spreadsheets. The page sells a
+              delivery system that brings that loop back under control.
             </p>
           </div>
 
-          <div className="mt-8 space-y-2 text-sm">
-            {[
-              "1. Account + workspace",
-              "2. Project + workflow",
-              "3. Sprint planning",
-              "4. Board execution",
-              "5. Issue change history",
-            ].map((step) => (
-              <div key={step} className="rounded-2xl border border-[var(--line)] bg-white/70 px-4 py-3">
-                {step}
+          <div className="grid gap-4 md:grid-cols-3">
+            {workflowSteps.map((step) => (
+              <div key={step.title} className="panel rounded-[1.8rem] px-5 py-6">
+                <p className="section-kicker">{step.eyebrow}</p>
+                <h3 className="mt-4 text-xl font-semibold tracking-[-0.04em]">{step.title}</h3>
+                <p className="mt-4 text-sm leading-7 text-[var(--foreground-subtle)]">{step.body}</p>
               </div>
             ))}
           </div>
-
-          <div className="mt-8 grid gap-3">
-            <Link className="btn-secondary text-center font-medium" href={workspaceHref(demoProjectId, state.selectedIssue?.id)}>
-              Demo project
-            </Link>
-            <form action={logoutAction}>
-              <button className="btn-secondary w-full font-medium" type="submit">
-                Sign out
-              </button>
-            </form>
-          </div>
-        </aside>
-
-        <section className="space-y-4">
-          <section className="panel overflow-hidden rounded-[2rem] px-6 py-6 sm:px-8">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-              <div className="max-w-3xl space-y-3">
-                <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">
-                  Project flow
-                </p>
-                <h2 className="text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
-                  {state.selectedProject?.name ?? "Create your first project"}
-                </h2>
-                <p className="max-w-2xl text-sm leading-7 text-[var(--muted)] sm:text-base">
-                  {state.selectedProject?.description ||
-                    "Use one project as the durable container for backlog, sprint cadence, issue execution, and history."}
-                </p>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-3">
-                <MetricCard label="Members" value={String(state.members.length)} />
-                <MetricCard label="Projects" value={String(state.projects.length)} />
-                <MetricCard
-                  label="Active sprint"
-                  value={activeSprint ? activeSprint.name : "None"}
-                />
-              </div>
-            </div>
-          </section>
-
-          <section className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-            <div className="panel rounded-[2rem] p-5">
-              <SectionHeader
-                eyebrow="Projects"
-                title="Switch workspace context"
-                body="Each project gets its own workflow, backlog, active sprint, and issue feed."
-              />
-              <div className="mt-5 flex flex-wrap gap-3">
-                {state.projects.map((project) => {
-                  const selected = project.id === state.selectedProject?.id;
-                  return (
-                    <Link
-                      key={project.id}
-                      href={workspaceHref(project.id, project.id === state.selectedProject?.id ? state.selectedIssue?.id : null)}
-                      className={`rounded-full px-4 py-2 text-sm font-medium ${
-                        selected
-                          ? "bg-[var(--foreground)] text-white"
-                          : "border border-[var(--line)] bg-white/70 text-[var(--foreground)]"
-                      }`}
-                    >
-                      {project.key} · {project.name}
-                    </Link>
-                  );
-                })}
-              </div>
-
-              <form action={createProjectAction} className="mt-6 grid gap-3 md:grid-cols-2">
-                <input name="tenantId" type="hidden" value={state.session.tenantId} />
-                <input name="userId" type="hidden" value={state.session.userId} />
-                <input className="field" name="name" placeholder="New project name" required />
-                <input className="field" name="key" placeholder="KEY" required />
-                <textarea
-                  className="field md:col-span-2"
-                  name="description"
-                  placeholder="Why this project exists"
-                  rows={3}
-                />
-                <button className="btn-primary md:col-span-2 justify-self-start font-medium" type="submit">
-                  Create project
-                </button>
-              </form>
-            </div>
-
-            <div className="panel rounded-[2rem] p-5">
-              <SectionHeader
-                eyebrow="Team"
-                title="Add members before planning work"
-                body="Workspace membership drives assignees, sprint ownership, and future permission checks."
-              />
-              <div className="mt-5 space-y-3">
-                {state.members.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between rounded-[1.25rem] border border-[var(--line)] bg-white/70 px-4 py-3"
-                  >
-                    <div>
-                      <p className="font-medium">{member.name || member.email}</p>
-                      <p className="text-sm text-[var(--muted)]">{member.email}</p>
-                    </div>
-                    <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs uppercase tracking-[0.18em] text-[var(--foreground)]">
-                      {member.role}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <form action={inviteMemberAction} className="mt-6 grid gap-3">
-                <input name="tenantId" type="hidden" value={state.session.tenantId} />
-                <input name="userId" type="hidden" value={state.session.userId} />
-                <input className="field" name="name" placeholder="New member name" required />
-                <input className="field" name="email" placeholder="member@company.com" required type="email" />
-                <button className="btn-secondary justify-self-start font-medium" type="submit">
-                  Invite member
-                </button>
-              </form>
-            </div>
-          </section>
-
-          <section className="grid gap-4 xl:grid-cols-[0.92fr_1.08fr]">
-            <div className="panel rounded-[2rem] p-5">
-              <SectionHeader
-                eyebrow="Sprint planning"
-                title={activeSprint ? activeSprint.name : "No active sprint yet"}
-                body={
-                  activeSprint
-                    ? activeSprint.goal || "The active sprint is the working board for execution."
-                    : "Create a sprint, assign backlog issues, and activate it when the team is ready."
-                }
-              />
-
-              {activeSprint ? (
-                <div className="mt-5 rounded-[1.5rem] border border-[var(--line)] bg-white/80 p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">
-                        Active sprint
-                      </p>
-                      <p className="mt-2 text-lg font-semibold">{activeSprint.name}</p>
-                      <p className="mt-1 text-sm text-[var(--muted)]">
-                        {formatDate(activeSprint.startDate)} to {formatDate(activeSprint.endDate)}
-                      </p>
-                    </div>
-                    <form action={completeSprintAction}>
-                      <input name="tenantId" type="hidden" value={state.session.tenantId} />
-                      <input name="userId" type="hidden" value={state.session.userId} />
-                      <input name="projectId" type="hidden" value={state.selectedProject?.id} />
-                      <input name="sprintId" type="hidden" value={activeSprint.id} />
-                      <input name="redirectTo" type="hidden" value={currentHref} />
-                      <button className="btn-secondary font-medium" type="submit">
-                        Complete sprint
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="mt-6 space-y-3">
-                {plannedSprints.map((sprint) => (
-                  <div
-                    key={sprint.id}
-                    className="flex items-center justify-between rounded-[1.25rem] border border-[var(--line)] bg-white/70 px-4 py-3"
-                  >
-                    <div>
-                      <p className="font-medium">{sprint.name}</p>
-                      <p className="text-sm text-[var(--muted)]">
-                        {sprint.goal || "No sprint goal yet"}
-                      </p>
-                    </div>
-                    <form action={activateSprintAction}>
-                      <input name="tenantId" type="hidden" value={state.session.tenantId} />
-                      <input name="userId" type="hidden" value={state.session.userId} />
-                      <input name="projectId" type="hidden" value={state.selectedProject?.id} />
-                      <input name="sprintId" type="hidden" value={sprint.id} />
-                      <input name="redirectTo" type="hidden" value={currentHref} />
-                      <button className="btn-secondary font-medium" type="submit">
-                        Start sprint
-                      </button>
-                    </form>
-                  </div>
-                ))}
-              </div>
-
-              <form action={createSprintAction} className="mt-6 grid gap-3">
-                <input name="tenantId" type="hidden" value={state.session.tenantId} />
-                <input name="userId" type="hidden" value={state.session.userId} />
-                <input name="projectId" type="hidden" value={state.selectedProject?.id} />
-                <input className="field" name="name" placeholder="Sprint 18" required />
-                <textarea className="field" name="goal" placeholder="What should ship this sprint?" rows={3} />
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <input className="field" name="startDate" type="date" />
-                  <input className="field" name="endDate" type="date" />
-                </div>
-                <button className="btn-primary justify-self-start font-medium" type="submit">
-                  Create sprint
-                </button>
-              </form>
-
-              {completedSprints.length > 0 ? (
-                <div className="mt-6">
-                  <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">
-                    Completed
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {completedSprints.map((sprint) => (
-                      <span
-                        key={sprint.id}
-                        className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-2 text-sm"
-                      >
-                        {sprint.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="panel rounded-[2rem] p-5">
-              <SectionHeader
-                eyebrow="Backlog"
-                title="Create tasks, bugs, and features"
-                body="The backlog is the intake point before sprint assignment. Use priority and assignee to keep grooming lightweight."
-              />
-
-              <form action={createIssueAction} className="mt-6 grid gap-3">
-                <input name="tenantId" type="hidden" value={state.session.tenantId} />
-                <input name="userId" type="hidden" value={state.session.userId} />
-                <input name="projectId" type="hidden" value={state.selectedProject?.id} />
-                <input className="field" name="title" placeholder="Issue title" required />
-                <textarea className="field" name="description" placeholder="Context, acceptance, and constraints" rows={3} />
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  <select className="field" name="issueType" defaultValue="task">
-                    <option value="task">Task</option>
-                    <option value="bug">Bug</option>
-                    <option value="feature">Feature</option>
-                  </select>
-                  <select className="field" name="priority" defaultValue="medium">
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="critical">Critical</option>
-                  </select>
-                  <select className="field" name="assigneeId" defaultValue="">
-                    <option value="">No assignee</option>
-                    {memberOptions.map((member) => (
-                      <option key={member.id} value={member.id}>
-                        {member.label}
-                      </option>
-                    ))}
-                  </select>
-                  <select className="field" name="sprintId" defaultValue="">
-                    <option value="">Backlog only</option>
-                    {state.sprints
-                      .filter((sprint) => sprint.status !== "completed")
-                      .map((sprint) => (
-                        <option key={sprint.id} value={sprint.id}>
-                          {sprint.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                <button className="btn-primary justify-self-start font-medium" type="submit">
-                  Create issue
-                </button>
-              </form>
-
-              <div className="mt-6 space-y-3">
-                {backlogIssues.length > 0 ? (
-                  backlogIssues.map((issue) => (
-                    <IssueRow
-                      key={issue.id}
-                      href={workspaceHref(state.selectedProject?.id, issue.id)}
-                      issue={issue}
-                      statusName={state.statuses.find((status) => status.id === issue.statusId)?.name ?? "Unknown"}
-                      assigneeLabel={memberOptions.find((member) => member.id === issue.assigneeId)?.label ?? "Unassigned"}
-                      selected={issue.id === state.selectedIssue?.id}
-                    />
-                  ))
-                ) : (
-                  <EmptyState
-                    title="Backlog clear"
-                    body="Create the first issue or move sprint work back here when planning changes."
-                  />
-                )}
-              </div>
-            </div>
-          </section>
-
-          <section className="panel rounded-[2rem] p-5">
-            <SectionHeader
-              eyebrow="Execution board"
-              title={activeSprint ? `${activeSprint.name} board` : "Sprint board waits for an active sprint"}
-              body={
-                activeSprint
-                  ? "Workflow transitions are the source of truth for moving work from backlog to done."
-                  : "Start a sprint to render the active board. Planned sprints stay in backlog mode."
-              }
-            />
-
-            {activeSprint ? (
-              <div className="mt-6 grid gap-4 xl:grid-cols-5">
-                {state.statuses.map((status) => (
-                  <div key={status.id} className="rounded-[1.5rem] border border-[var(--line)] bg-white/70 p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">
-                          {status.category}
-                        </p>
-                        <h3 className="mt-1 text-lg font-semibold">{status.name}</h3>
-                      </div>
-                      <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs">
-                        {issuesByStatus.get(status.id)?.length ?? 0}
-                      </span>
-                    </div>
-
-                    <div className="mt-4 space-y-3">
-                      {(issuesByStatus.get(status.id) ?? []).map((issue) => (
-                        <div
-                          key={issue.id}
-                          className="rounded-[1.25rem] border border-[var(--line)] bg-[var(--surface-strong)] p-3"
-                        >
-                          <Link href={workspaceHref(state.selectedProject?.id, issue.id)} className="block">
-                            <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
-                              {state.selectedProject?.key}-{issue.number}
-                            </p>
-                            <p className="mt-2 font-medium">{issue.title}</p>
-                            <p className="mt-2 text-sm text-[var(--muted)]">
-                              {memberOptions.find((member) => member.id === issue.assigneeId)?.label ??
-                                "Unassigned"}
-                            </p>
-                          </Link>
-
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {(transitionsByFrom.get(issue.statusId) ?? []).map((transition) => (
-                              <form key={transition.id} action={transitionIssueAction}>
-                                <input name="tenantId" type="hidden" value={state.session.tenantId} />
-                                <input name="userId" type="hidden" value={state.session.userId} />
-                                <input name="projectId" type="hidden" value={state.selectedProject?.id} />
-                                <input name="issueId" type="hidden" value={issue.id} />
-                                <input name="toStatusId" type="hidden" value={transition.toStatusId} />
-                                <input
-                                  name="redirectTo"
-                                  type="hidden"
-                                  value={workspaceHref(state.selectedProject?.id, issue.id)}
-                                />
-                                <button className="btn-secondary px-3 py-2 text-xs font-medium" type="submit">
-                                  {transition.name}
-                                </button>
-                              </form>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-6">
-                <EmptyState
-                  title="No active sprint"
-                  body="Create a sprint, assign issues, and start it to render the execution board."
-                />
-              </div>
-            )}
-          </section>
         </section>
 
-        <aside className="panel rounded-[2rem] p-5 lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)] lg:overflow-y-auto">
-          {state.selectedIssue ? (
-            <>
-              <SectionHeader
-                eyebrow="Issue detail"
-                title={`${state.selectedProject?.key}-${state.selectedIssue.number}`}
-                body={state.selectedIssue.title}
-              />
-
-              <form action={updateIssueAction} className="mt-6 space-y-3">
-                <input name="tenantId" type="hidden" value={state.session.tenantId} />
-                <input name="userId" type="hidden" value={state.session.userId} />
-                <input name="projectId" type="hidden" value={state.selectedProject?.id} />
-                <input name="issueId" type="hidden" value={state.selectedIssue.id} />
-                <input name="redirectTo" type="hidden" value={currentHref} />
-                <input className="field" name="title" defaultValue={state.selectedIssue.title} required />
-                <textarea
-                  className="field"
-                  name="description"
-                  defaultValue={state.selectedIssue.description ?? ""}
-                  rows={5}
-                />
-                <div className="grid gap-3 md:grid-cols-2">
-                  <select className="field" name="priority" defaultValue={state.selectedIssue.priority}>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="critical">Critical</option>
-                  </select>
-                  <select className="field" name="assigneeId" defaultValue={state.selectedIssue.assigneeId ?? ""}>
-                    <option value="">No assignee</option>
-                    {memberOptions.map((member) => (
-                      <option key={member.id} value={member.id}>
-                        {member.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <select className="field" name="sprintId" defaultValue={state.selectedIssue.sprintId ?? ""}>
-                  <option value="">Backlog</option>
-                  {state.sprints.filter((sprint) => sprint.status !== "completed").map((sprint) => (
-                    <option key={sprint.id} value={sprint.id}>
-                      {sprint.name}
-                    </option>
-                  ))}
-                </select>
-                <button className="btn-primary w-full font-medium" type="submit">
-                  Save issue changes
-                </button>
-              </form>
-
-              <section className="mt-8">
-                <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">
-                  Comments
+        <section id="integrations" className="py-10">
+          <div className="panel rounded-[2rem] px-6 py-7 sm:px-8">
+            <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
+              <div>
+                <p className="section-kicker">Integrations that matter</p>
+                <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+                  Built around how software delivery already moves.
+                </h2>
+                <p className="mt-5 max-w-lg text-base leading-8 text-[var(--foreground-subtle)]">
+                  Buyer language stays clear, technical language stays available. The product can
+                  talk to dev leads without pretending the engineering layer does not exist.
                 </p>
-                <form action={addCommentAction} className="mt-3 space-y-3">
-                  <input name="tenantId" type="hidden" value={state.session.tenantId} />
-                  <input name="userId" type="hidden" value={state.session.userId} />
-                  <input name="issueId" type="hidden" value={state.selectedIssue.id} />
-                  <input name="redirectTo" type="hidden" value={currentHref} />
-                  <textarea className="field" name="content" placeholder="Leave a concise update" rows={4} required />
-                  <button className="btn-secondary w-full font-medium" type="submit">
-                    Add comment
-                  </button>
-                </form>
+              </div>
 
-                <div className="mt-4 space-y-3">
-                  {state.comments.map((comment) => (
-                    <div key={comment.id} className="rounded-[1.25rem] border border-[var(--line)] bg-white/70 p-4">
-                      <p className="text-sm font-medium">
-                        {comment.authorName || comment.authorEmail}
-                      </p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
-                        {formatDate(comment.createdAt)}
-                      </p>
-                      <p className="mt-3 text-sm leading-7">{comment.content}</p>
-                    </div>
-                  ))}
+              <div className="grid gap-4 md:grid-cols-3">
+                {productPillars.map((pillar) => (
+                  <div key={pillar.title} className="rounded-[1.8rem] border border-white/10 bg-white/[0.04] px-5 py-6">
+                    <h3 className="text-lg font-semibold tracking-[-0.03em]">{pillar.title}</h3>
+                    <p className="mt-4 text-sm leading-7 text-[var(--foreground-subtle)]">{pillar.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="contrast" className="py-10">
+          <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+            <div className="panel rounded-[2rem] px-6 py-7 sm:px-8">
+              <p className="section-kicker">Contrast without the brand wall</p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+                The point is not another tracker, it is a cleaner delivery layer between bugs, teams, and code.
+              </h2>
+              <div className="mt-7 grid gap-3">
+                {comparisonPoints.map((point) => (
+                  <div
+                    key={point}
+                    className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-[var(--foreground-subtle)]"
+                  >
+                    {point}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="panel rounded-[2rem] px-6 py-7 sm:px-8">
+              <p className="section-kicker">Current proof</p>
+              <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
+                Built from a working product surface, presented as the sharper version buyers need to see.
+              </h2>
+              <div className="mt-6 rounded-[1.7rem] border border-white/10 bg-[linear-gradient(180deg,rgba(10,15,28,0.92),rgba(8,12,24,0.96))] p-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">Current workspace base</p>
+                    <p className="mt-2 text-sm text-[var(--foreground-subtle)]">
+                      Existing issue board, sprint planning, and activity tracking already exist in the product.
+                    </p>
+                  </div>
+                  <Link className="btn-secondary text-sm font-medium" href="/workspace">
+                    Open workspace
+                  </Link>
                 </div>
-              </section>
+                <div className="mt-6 grid gap-3 md:grid-cols-3">
+                  <MiniPanel title="Projects" value="Workflow-aware project switching" />
+                  <MiniPanel title="Execution board" value="Backlog to done status movement" />
+                  <MiniPanel title="Issue detail" value="Comments and delivery history" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-              <section className="mt-8">
-                <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">
-                  Change history
+        <section className="py-10">
+          <div className="panel rounded-[2.2rem] px-6 py-8 sm:px-8 lg:px-10">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <p className="section-kicker">Next step</p>
+                <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+                  If delivery context keeps collapsing between tracker, chat, and code, that is the demo conversation.
+                </h2>
+                <p className="mt-5 text-base leading-8 text-[var(--foreground-subtle)]">
+                  Bugslinter is for teams that want simplicity with AI-assisted project delivery, without pretending the human delivery loop no longer matters.
                 </p>
-                <div className="mt-4 space-y-3">
-                  {state.activities.map((activity) => (
-                    <div key={activity.id} className="rounded-[1.25rem] border border-[var(--line)] bg-white/70 p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-medium">
-                            {activity.actorName || activity.actorEmail || "System"}
-                          </p>
-                          <p className="mt-1 text-sm text-[var(--muted)]">
-                            {summarizeActivity(
-                              activity.actionType,
-                              activity.metadata as ActivityMetadata,
-                            )}
-                          </p>
-                        </div>
-                        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--muted)]">
-                          {formatDate(activity.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </>
-          ) : (
-            <EmptyState
-              title="Select an issue"
-              body="Choose an issue from backlog or board to edit planning fields, leave comments, and inspect change history."
-            />
-          )}
-        </aside>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link className="btn-primary text-sm font-medium" href="/book-demo">
+                  Book a demo
+                </Link>
+                <Link className="btn-secondary text-sm font-medium" href="/workspace">
+                  Login
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );
 }
 
-function SectionHeader({
-  eyebrow,
+function HeroSignal({ label, body }: { label: string; body: string }) {
+  return (
+    <div className="rounded-[1.45rem] border border-white/10 bg-white/[0.04] px-4 py-4">
+      <p className="text-sm font-medium">{label}</p>
+      <p className="mt-2 text-sm leading-6 text-[var(--foreground-subtle)]">{body}</p>
+    </div>
+  );
+}
+
+function WorkflowNode({
   title,
   body,
+  tone = "default",
 }: {
-  eyebrow: string;
   title: string;
   body: string;
+  tone?: "default" | "accent" | "muted";
 }) {
   return (
-    <div className="space-y-2">
-      <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">{eyebrow}</p>
-      <h2 className="text-2xl font-semibold tracking-[-0.04em]">{title}</h2>
-      <p className="max-w-2xl text-sm leading-7 text-[var(--muted)]">{body}</p>
-    </div>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[1.5rem] border border-[var(--line)] bg-white/75 px-4 py-4">
-      <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">{label}</p>
-      <p className="mt-3 text-lg font-semibold tracking-[-0.03em]">{value}</p>
-    </div>
-  );
-}
-
-function IssueRow({
-  href,
-  issue,
-  statusName,
-  assigneeLabel,
-  selected,
-}: {
-  href: string;
-  issue: {
-    id: string;
-    number: number;
-    title: string;
-    priority: string;
-    issueType: string;
-  };
-  statusName: string;
-  assigneeLabel: string;
-  selected: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`block rounded-[1.25rem] border px-4 py-4 ${
-        selected
-          ? "border-[rgba(15,118,110,0.4)] bg-[var(--accent-soft)]"
-          : "border-[var(--line)] bg-white/70"
+    <div
+      className={`workflow-node ${
+        tone === "accent"
+          ? "workflow-node-accent"
+          : tone === "muted"
+            ? "workflow-node-muted"
+            : ""
       }`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <p className="font-medium">{issue.title}</p>
-        <span className="rounded-full border border-[var(--line)] px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
-          {issue.issueType}
-        </span>
-      </div>
-      <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
-        <span>{statusName}</span>
-        <span>{issue.priority}</span>
-        <span>{assigneeLabel}</span>
-      </div>
-    </Link>
+      <p className="text-sm font-medium tracking-[-0.02em]">{title}</p>
+      <p className="mt-3 text-sm leading-6 text-[var(--foreground-subtle)]">{body}</p>
+    </div>
   );
 }
 
-function EmptyState({ title, body }: { title: string; body: string }) {
+function MiniPanel({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-white/60 px-5 py-8 text-center">
-      <p className="text-lg font-semibold">{title}</p>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-[var(--muted)]">{body}</p>
+    <div className="rounded-[1.25rem] border border-white/10 bg-white/[0.04] px-4 py-4">
+      <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">{title}</p>
+      <p className="mt-2 text-sm text-[var(--foreground-subtle)]">{value}</p>
     </div>
   );
 }
