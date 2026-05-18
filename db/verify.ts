@@ -1,6 +1,6 @@
 import { asc, count, eq } from "drizzle-orm";
 
-import { issues, organizations, workflowStatuses } from "@/db/schema";
+import { issues, organizations, sprints, workflowStatuses } from "@/db/schema";
 import { databaseClient } from "@/lib/db/client";
 import { withTenant } from "@/lib/db/tenant-core";
 
@@ -27,11 +27,13 @@ try {
       .orderBy(asc(issues.number));
 
     const [statusCount] = await tx.select({ value: count() }).from(workflowStatuses);
+    const [sprintCount] = await tx.select({ value: count() }).from(sprints);
 
     return {
       organization,
       issueCount: issueRows.length,
       statusCount: statusCount.value,
+      sprintCount: sprintCount.value,
       issues: issueRows,
     };
   });

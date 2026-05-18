@@ -110,3 +110,23 @@ confidence: high
    - update - log.md
 
 **Issues Resolved:** Raw directory now compliant with hygiene rules (empty except for placeholders).
+
+---
+
+## 2026-05-18: Product Flow And Roadmap Update
+
+**Type:** Product structure update
+
+**Actions Performed:**
+
+1. **Added product entrypoints**
+   - create - product/product.md
+   - create - product/user-flow.md
+   - create - product/core-entities.md
+   - create - product/roadmap.md
+
+2. **Updated navigation**
+   - update - index.md
+   - update - log.md
+
+**Issues Resolved:** The wiki now has durable entrypoints for the current Jira-like user flow, sprint-capable entity model, and phased implementation roadmap.

@@ -36,6 +36,12 @@ export const issuePriorityEnum = pgEnum("issue_priority", [
   "critical",
 ]);
 
+export const sprintStatusEnum = pgEnum("sprint_status", [
+  "planned",
+  "active",
+  "completed",
+]);
+
 export const workflowStatusCategoryEnum = pgEnum("workflow_status_category", [
   "start",
   "intermediate",
@@ -49,6 +55,9 @@ export const issueActivityTypeEnum = pgEnum("issue_activity_type", [
   "commented",
   "assigned",
   "priority_changed",
+  "sprint_changed",
+  "title_changed",
+  "description_changed",
 ]);
 
 const timestamps = {
@@ -254,6 +263,46 @@ export const workflowTransitions = pgTable(
   ],
 ).enableRLS();
 
+export const sprints = pgTable(
+  "sprints",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id").notNull(),
+    name: text("name").notNull(),
+    goal: text("goal"),
+    status: sprintStatusEnum("status").notNull().default("planned"),
+    startDate: timestamp("start_date", { withTimezone: true }),
+    endDate: timestamp("end_date", { withTimezone: true }),
+    createdBy: uuid("created_by").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("sprints_tenant_project_name_unique").on(table.tenantId, table.projectId, table.name),
+    unique("sprints_tenant_project_id_unique").on(table.tenantId, table.projectId, table.id),
+    index("sprints_project_idx").on(table.tenantId, table.projectId),
+    index("sprints_status_idx").on(table.tenantId, table.projectId, table.status),
+    foreignKey({
+      name: "sprints_tenant_project_fk",
+      columns: [table.tenantId, table.projectId],
+      foreignColumns: [projects.tenantId, projects.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      name: "sprints_tenant_created_by_fk",
+      columns: [table.tenantId, table.createdBy],
+      foreignColumns: [users.tenantId, users.id],
+    }).onDelete("restrict"),
+    pgPolicy("sprints_tenant_isolation", {
+      for: "all",
+      to: "public",
+      using: sql`${table.tenantId} = ${currentTenantId}`,
+      withCheck: sql`${table.tenantId} = ${currentTenantId}`,
+    }),
+  ],
+).enableRLS();
+
 export const issues = pgTable(
   "issues",
   {
@@ -270,6 +319,8 @@ export const issues = pgTable(
     priority: issuePriorityEnum("priority").notNull().default("medium"),
     reporterId: uuid("reporter_id").notNull(),
     assigneeId: uuid("assignee_id"),
+    sprintId: uuid("sprint_id"),
+    rank: integer("rank").notNull().default(0),
     dueDate: timestamp("due_date", { withTimezone: true }),
     ...timestamps,
   },
@@ -279,6 +330,8 @@ export const issues = pgTable(
     index("issues_tenant_project_idx").on(table.tenantId, table.projectId),
     index("issues_assignee_idx").on(table.tenantId, table.assigneeId),
     index("issues_status_idx").on(table.tenantId, table.statusId),
+    index("issues_sprint_idx").on(table.tenantId, table.projectId, table.sprintId),
+    index("issues_rank_idx").on(table.tenantId, table.projectId, table.rank),
     foreignKey({
       name: "issues_tenant_project_fk",
       columns: [table.tenantId, table.projectId],
@@ -298,6 +351,11 @@ export const issues = pgTable(
       name: "issues_tenant_assignee_fk",
       columns: [table.tenantId, table.assigneeId],
       foreignColumns: [users.tenantId, users.id],
+    }).onDelete("set null"),
+    foreignKey({
+      name: "issues_tenant_project_sprint_fk",
+      columns: [table.tenantId, table.projectId, table.sprintId],
+      foreignColumns: [sprints.tenantId, sprints.projectId, sprints.id],
     }).onDelete("set null"),
     pgPolicy("issues_tenant_isolation", {
       for: "all",
@@ -395,6 +453,9 @@ export type NewWorkflowStatus = InferInsertModel<typeof workflowStatuses>;
 
 export type WorkflowTransition = InferSelectModel<typeof workflowTransitions>;
 export type NewWorkflowTransition = InferInsertModel<typeof workflowTransitions>;
+
+export type Sprint = InferSelectModel<typeof sprints>;
+export type NewSprint = InferInsertModel<typeof sprints>;
 
 export type Issue = InferSelectModel<typeof issues>;
 export type NewIssue = InferInsertModel<typeof issues>;

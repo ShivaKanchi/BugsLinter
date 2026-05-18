@@ -8,6 +8,7 @@ import {
   memberships,
   organizations,
   projects,
+  sprints,
   users,
   workflowStatuses,
   workflowTransitions,
@@ -27,6 +28,7 @@ const adminUserId = "22222222-2222-4222-8222-222222222222";
 const developerUserId = "33333333-3333-4333-8333-333333333333";
 const viewerUserId = "44444444-4444-4444-8444-444444444444";
 const projectId = "55555555-5555-4555-8555-555555555555";
+const sprintId = "56565656-5656-4565-8565-565656565656";
 
 const backlogStatusId = "66666666-6666-4666-8666-666666666666";
 const todoStatusId = "77777777-7777-4777-8777-777777777777";
@@ -198,6 +200,21 @@ async function main() {
     .onConflictDoNothing();
 
   await db
+    .insert(sprints)
+    .values({
+      id: sprintId,
+      tenantId,
+      projectId,
+      name: "Sprint 18",
+      goal: "Ship the first sprint-ready project flow with onboarding, planning, and issue history.",
+      status: "active",
+      startDate: new Date("2026-05-19T00:00:00Z"),
+      endDate: new Date("2026-05-30T00:00:00Z"),
+      createdBy: adminUserId,
+    })
+    .onConflictDoNothing();
+
+  await db
     .insert(issues)
     .values([
       {
@@ -212,6 +229,8 @@ async function main() {
         priority: "high",
         reporterId: adminUserId,
         assigneeId: developerUserId,
+        sprintId,
+        rank: 1000,
       },
       {
         id: secondIssueId,
@@ -225,6 +244,22 @@ async function main() {
         priority: "medium",
         reporterId: developerUserId,
         assigneeId: developerUserId,
+        rank: 2000,
+      },
+      {
+        id: "cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd",
+        tenantId,
+        projectId,
+        number: 3,
+        title: "Polish issue detail activity feed",
+        description: "Make sprint changes, status changes, and comments easy to scan in one panel.",
+        issueType: "bug",
+        statusId: reviewStatusId,
+        priority: "high",
+        reporterId: adminUserId,
+        assigneeId: developerUserId,
+        sprintId,
+        rank: 3000,
       },
     ])
     .onConflictDoNothing();
@@ -278,6 +313,26 @@ async function main() {
         actorId: developerUserId,
         actionType: "created",
         metadata: { statusId: todoStatusId },
+      },
+      {
+        id: "23232323-2323-4232-8232-232323232323",
+        tenantId,
+        issueId: firstIssueId,
+        actorId: adminUserId,
+        actionType: "sprint_changed",
+        metadata: {
+          field: "sprintId",
+          from: null,
+          to: sprintId,
+        },
+      },
+      {
+        id: "24242424-2424-4242-8242-242424242424",
+        tenantId,
+        issueId: "cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd",
+        actorId: developerUserId,
+        actionType: "created",
+        metadata: { statusId: reviewStatusId },
       },
     ])
     .onConflictDoNothing();
