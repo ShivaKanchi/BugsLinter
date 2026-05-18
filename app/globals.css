@@ -13,6 +13,8 @@
   --accent-strong: #9fe0ff;
   --accent-soft: rgba(124, 156, 255, 0.18);
   --danger-soft: rgba(255, 99, 99, 0.16);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @theme inline {
@@ -22,14 +24,76 @@
   --font-mono: var(--font-plex-mono);
 }
 
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fade-in-up 420ms var(--ease-out-quart) forwards;
+}
+
+.animate-stagger > * {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: fade-in-up 420ms var(--ease-out-quart) forwards;
+}
+
+.animate-stagger > *:nth-child(1) {
+  animation-delay: 120ms;
+}
+
+.animate-stagger > *:nth-child(2) {
+  animation-delay: 180ms;
+}
+
+.animate-stagger > *:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.animate-stagger > *:nth-child(4) {
+  animation-delay: 300ms;
+}
+
+.animate-stagger > *:nth-child(5) {
+  animation-delay: 360ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
 
 html {
   background:
-    radial-gradient(circle at top left, rgba(124, 156, 255, 0.2), transparent 28%),
-    radial-gradient(circle at top right, rgba(159, 224, 255, 0.14), transparent 24%),
+    radial-gradient(
+      circle at top left,
+      rgba(124, 156, 255, 0.2),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(159, 224, 255, 0.14),
+      transparent 24%
+    ),
     linear-gradient(180deg, #08101d 0%, #060912 100%);
   color-scheme: dark;
 }
@@ -59,7 +123,11 @@ textarea {
 
 .panel {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.02)
+    ),
     var(--surface);
   border: 1px solid var(--line);
   box-shadow:
@@ -92,7 +160,11 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    var(--accent-strong) 100%
+  );
   color: #07111f;
   padding: 0.9rem 1.15rem;
   box-shadow: 0 18px 50px rgba(124, 156, 255, 0.22);
@@ -209,7 +281,11 @@ textarea {
   border-radius: 1.8rem;
   border: 1px solid rgba(124, 156, 255, 0.2);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.02)
+    ),
     rgba(8, 12, 24, 0.94);
   padding: 1.15rem;
 }
@@ -228,6 +304,12 @@ textarea {
 
 .workflow-node-muted {
   background: rgba(255, 255, 255, 0.025);
+}
+
+.suite-sidebar {
+  background:
+    radial-gradient(circle at top left, rgba(124, 156, 255, 0.16), transparent 24%),
+    linear-gradient(180deg, rgba(10, 16, 31, 0.98), rgba(8, 12, 24, 0.98));
 }
 
 @media (min-width: 960px) {

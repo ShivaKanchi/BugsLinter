@@ -27,7 +27,7 @@ export default async function BookDemoPage({
             <Link className="btn-secondary text-sm font-medium" href="/">
               Back home
             </Link>
-            <Link className="btn-secondary text-sm font-medium" href="/workspace">
+            <Link className="btn-secondary text-sm font-medium" href="/login">
               Login
             </Link>
           </div>

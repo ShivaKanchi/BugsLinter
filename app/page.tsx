@@ -49,7 +49,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <div className="mx-auto max-w-[1400px] px-5 py-6 sm:px-8 lg:px-10">
-        <header className="sticky top-4 z-20 rounded-full border border-white/10 bg-[rgba(7,10,20,0.82)] px-5 py-3 shadow-[0_24px_70px_rgba(3,6,18,0.32)] backdrop-blur">
+        <header className="sticky top-4 z-20 rounded-full border border-white/10 bg-[rgba(7,10,20,0.82)] px-5 py-3 shadow-[0_24px_70px_rgba(3,6,18,0.32)] backdrop-blur animate-fade-up">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center justify-between gap-4">
               <Link className="text-lg font-semibold tracking-[-0.04em]" href="/">
@@ -70,7 +70,7 @@ export default function LandingPage() {
               <a className="hover:text-[var(--foreground)]" href="#contrast">
                 Why it lands
               </a>
-              <Link className="hover:text-[var(--foreground)]" href="/workspace">
+              <Link className="hover:text-[var(--foreground)]" href="/login">
                 Login
               </Link>
               <Link className="btn-secondary text-sm font-medium" href="#workflow">
@@ -83,12 +83,12 @@ export default function LandingPage() {
           </div>
         </header>
 
-        <section className="relative overflow-hidden px-1 pb-10 pt-12 sm:pt-16">
+        <section className="relative overflow-hidden px-1 pb-10 pt-12 sm:pt-16 animate-fade-up">
           <div className="landing-glow landing-glow-left" />
           <div className="landing-glow landing-glow-right" />
 
           <div className="grid gap-10 lg:grid-cols-[0.86fr_1.14fr] lg:items-end">
-            <div className="relative z-10 max-w-2xl">
+            <div className="relative z-10 max-w-2xl animate-stagger">
               <p className="section-kicker">AI-assisted workflow management for software delivery</p>
               <h1 className="mt-5 text-5xl font-semibold leading-[0.95] tracking-[-0.06em] text-[var(--foreground)] sm:text-6xl xl:text-7xl">
                 Simplicity for teams that ship bugs to resolution, without Jira overhead.
@@ -107,7 +107,7 @@ export default function LandingPage() {
                 </a>
               </div>
 
-              <div className="mt-10 grid gap-3 sm:grid-cols-3">
+              <div className="mt-10 grid gap-3 sm:grid-cols-3 animate-stagger">
                 <HeroSignal
                   label="Private code context"
                   body="Issue details stay close to the engineering reality."
@@ -124,8 +124,8 @@ export default function LandingPage() {
             </div>
 
             <div className="relative">
-              <div className="hero-frame">
-                <div className="hero-header">
+              <div className="hero-frame animate-fade-up">
+                <div className="hero-header animate-stagger">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.26em] text-[var(--muted)]">Future-facing workflow view</p>
                     <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
@@ -138,7 +138,7 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <div className="hero-grid">
+                <div className="hero-grid animate-stagger">
                   <div className="hero-stack">
                     <WorkflowNode
                       title="Incoming bug"
@@ -156,7 +156,7 @@ export default function LandingPage() {
                   </div>
 
                   <div className="hero-bridge">
-                    <div className="hero-ai-core">
+                    <div className="hero-ai-core animate-fade-up">
                       <p className="text-[11px] uppercase tracking-[0.24em] text-cyan-200/80">AI workflow core</p>
                       <h3 className="mt-3 text-xl font-semibold tracking-[-0.04em]">
                         Context before code generation
@@ -165,7 +165,7 @@ export default function LandingPage() {
                         Bugslinter prepares the issue description, links the relevant workflow state,
                         and hands a structured brief into connected coding-agent flows.
                       </p>
-                      <div className="mt-5 grid gap-3">
+                      <div className="mt-5 grid gap-3 animate-stagger">
                         <MiniPanel
                           title="Coding-agent integrations (MCP compatible)"
                           value="Fix bugs with structured issue context"
@@ -199,7 +199,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="workflow" className="grid gap-6 py-10 lg:grid-cols-[0.78fr_1.22fr]">
+        <section id="workflow" className="grid gap-6 py-10 lg:grid-cols-[0.78fr_1.22fr] animate-fade-up">
           <div className="panel rounded-[2rem] px-6 py-7 sm:px-8">
             <p className="section-kicker">Why it lands</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
@@ -212,7 +212,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3 animate-stagger">
             {workflowSteps.map((step) => (
               <div key={step.title} className="panel rounded-[1.8rem] px-5 py-6">
                 <p className="section-kicker">{step.eyebrow}</p>
@@ -223,7 +223,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="integrations" className="py-10">
+        <section id="integrations" className="py-10 animate-fade-up">
           <div className="panel rounded-[2rem] px-6 py-7 sm:px-8">
             <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
               <div>
@@ -237,7 +237,7 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-3 animate-stagger">
                 {productPillars.map((pillar) => (
                   <div key={pillar.title} className="rounded-[1.8rem] border border-white/10 bg-white/[0.04] px-5 py-6">
                     <h3 className="text-lg font-semibold tracking-[-0.03em]">{pillar.title}</h3>
@@ -281,8 +281,8 @@ export default function LandingPage() {
                       Existing issue board, sprint planning, and activity tracking already exist in the product.
                     </p>
                   </div>
-                  <Link className="btn-secondary text-sm font-medium" href="/workspace">
-                    Open workspace
+                  <Link className="btn-secondary text-sm font-medium" href="/dashboard">
+                    Open product suite
                   </Link>
                 </div>
                 <div className="mt-6 grid gap-3 md:grid-cols-3">
@@ -311,7 +311,7 @@ export default function LandingPage() {
                 <Link className="btn-primary text-sm font-medium" href="/book-demo">
                   Book a demo
                 </Link>
-                <Link className="btn-secondary text-sm font-medium" href="/workspace">
+                <Link className="btn-secondary text-sm font-medium" href="/login">
                   Login
                 </Link>
               </div>
